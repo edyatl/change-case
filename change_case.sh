@@ -86,7 +86,7 @@ function convert_case {
     if [ "$VERBOSE" == true ]; then
       /bin/echo "$OLD_NAME -> $NEW_NAME"
     fi
-    /bin/mv -v "$OLD_NAME" "$NEW_NAME"
+    /bin/mv "$OLD_NAME" "$NEW_NAME"
   fi
 }
 

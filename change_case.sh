@@ -69,12 +69,16 @@ PATH="$1"
 # Define the function to perform the case conversion
 function convert_case {
   local OLD_NAME="$1"
-  local FILE_NAME=$(/usr/bin/basename "$1")
-  local DIR_PATH=$(/usr/bin/dirname "$1")
-  local FILE_EXT="${FILE_NAME##*.}"
-  local FILE_NAME_NO_EXT="${FILE_NAME%.*}"
-  local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
-  local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
+    if is_file "$f"; then
+      local FILE_NAME=$(/usr/bin/basename "$1")
+      local DIR_PATH=$(/usr/bin/dirname "$1")
+      local FILE_EXT="${FILE_NAME##*.}"
+      local FILE_NAME_NO_EXT="${FILE_NAME%.*}"
+      local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
+      local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
+    else
+      local NEW_NAME=$(/bin/echo "$OLD_NAME" | eval "$CHANGE_CASE")
+    fi
   if [ "$OLD_NAME" != "$NEW_NAME" ]; then
     if [ "$VERBOSE" == true ]; then
       /bin/echo "$OLD_NAME -> $NEW_NAME"
@@ -90,9 +94,7 @@ elif [ -d "$PATH" ]; then
   if [ "$RECURSIVE" == true ]; then
     find "$PATH" -depth -exec bash -c 'convert_case "$0"' {} \;
   else
-    for f in "$PATH"/*; do
-      convert_case "$f"
-    done
+    convert_case "$PATH"
   fi
 else
   /bin/echo "$PATH is not a file or directory." >&2

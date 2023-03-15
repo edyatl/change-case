@@ -41,24 +41,6 @@ while getopts "ULMRV" opt; do
 done
 shift $((OPTIND-1))
 
-# Функция для проверки того, является ли аргумент допустимым каталогом
-is_directory() {
-    if [ -d "$1" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Функция для проверки того, является ли аргумент файлом
-is_file() {
-    if [ -f "$1" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 # Инфо о необходимости указать ПУТЬ к файлу или каталогу для переименования
 if [ $# -eq 0 ]; then
   /bin/echo "Укажите ПУТЬ к файлу или каталогу для переименования." >&2
@@ -70,20 +52,20 @@ PATH="$1"
 # Определение функции для выполнения преобразования регистра
 function convert_case {
   local OLD_NAME="$1"
-    if is_file "$f"; then
-      local FILE_NAME=$(/usr/bin/basename "$1")
-      local DIR_PATH=$(/usr/bin/dirname "$1")
-      local FILE_EXT="${FILE_NAME##*.}"
-      local FILE_NAME_NO_EXT="${FILE_NAME%.*}"
-      local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
-      local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
-    else
-      local BASE_NAME=$(/usr/bin/basename "$1")
-      local DIR_PATH=$(/usr/bin/dirname "$1")
-      local NEW_BASE_NAME=$(/bin/echo "$BASE_NAME" | eval "$CHANGE_CASE")
-      local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_BASE_NAME")
-    fi
-  if [ "$OLD_NAME" != "$NEW_NAME" ]; then
+  if [ -f "$1" ]; then
+    local FILE_NAME=$(/usr/bin/basename "$1")
+    local DIR_PATH=$(/usr/bin/dirname "$1")
+    local FILE_EXT="${FILE_NAME##*.}"
+    local FILE_NAME_NO_EXT="${FILE_NAME%.*}"
+    local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
+    local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
+  else
+    local BASE_NAME=$(/usr/bin/basename "$1")
+    local DIR_PATH=$(/usr/bin/dirname "$1")
+    local NEW_BASE_NAME=$(/bin/echo "$BASE_NAME" | eval "$CHANGE_CASE")
+    local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_BASE_NAME")
+  fi
+  if [ $(/usr/bin/realpath "$OLD_NAME") != $(/usr/bin/realpath "$NEW_NAME") ]; then
     if [ "$VERBOSE" == true ]; then
       /bin/echo "$OLD_NAME -> $NEW_NAME"
     fi

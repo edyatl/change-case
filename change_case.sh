@@ -77,7 +77,10 @@ function convert_case {
       local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
       local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
     else
-      local NEW_NAME=$(/bin/echo "$OLD_NAME" | eval "$CHANGE_CASE")
+      local BASE_NAME=$(/usr/bin/basename "$1")
+      local DIR_PATH=$(/usr/bin/dirname "$1")
+      local NEW_BASE_NAME=$(/bin/echo "$BASE_NAME" | eval "$CHANGE_CASE")
+      local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_BASE_NAME")
     fi
   if [ "$OLD_NAME" != "$NEW_NAME" ]; then
     if [ "$VERBOSE" == true ]; then
@@ -92,7 +95,9 @@ if [ -f "$PATH" ]; then
   convert_case "$PATH"
 elif [ -d "$PATH" ]; then
   if [ "$RECURSIVE" == true ]; then
-    find "$PATH" -depth -exec bash -c 'convert_case "$0"' {} \;
+    for f in $(/usr/bin/find "$PATH" -depth | /usr/bin/awk '{print length($0), $0}' | /usr/bin/sort -rn | /usr/bin/awk '{ print $2 }'); do
+      convert_case "$f"
+    done
   else
     convert_case "$PATH"
   fi

@@ -25,7 +25,7 @@ while getopts "ULMRV" opt; do
       CHANGE_CASE="/usr/bin/tr '[:upper:]' '[:lower:]'"
       ;;
     M)
-      CHANGE_CASE="/bin/sed -r 's/(\b\w)/\U\1/g'"
+      CHANGE_CASE="/usr/bin/tr '[:upper:]' '[:lower:]' | /bin/sed -r 's/(\b\w)/\U\1/g'"
       ;;
     R)
       RECURSIVE=true
@@ -41,6 +41,24 @@ while getopts "ULMRV" opt; do
 done
 shift $((OPTIND-1))
 
+# Function to check if the argument is a valid directory
+is_directory() {
+    if [ -d "$1" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to check if the argument is a valid file
+is_file() {
+    if [ -f "$1" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Get the PATH to the file or directory to rename
 if [ $# -eq 0 ]; then
   /bin/echo "Please provide a PATH to the file or directory to rename." >&2
@@ -51,7 +69,12 @@ PATH="$1"
 # Define the function to perform the case conversion
 function convert_case {
   local OLD_NAME="$1"
-  local NEW_NAME=$(/bin/echo "$OLD_NAME" | eval "$CHANGE_CASE")
+  local FILE_NAME=$(/usr/bin/basename "$1")
+  local DIR_PATH=$(/usr/bin/dirname "$1")
+  local FILE_EXT="${FILE_NAME##*.}"
+  local FILE_NAME_NO_EXT="${FILE_NAME%.*}"
+  local NEW_FILE_NAME_NO_EXT=$(/bin/echo "$FILE_NAME_NO_EXT" | eval "$CHANGE_CASE")
+  local NEW_NAME=$(/bin/echo "$DIR_PATH/$NEW_FILE_NAME_NO_EXT.$FILE_EXT")
   if [ "$OLD_NAME" != "$NEW_NAME" ]; then
     if [ "$VERBOSE" == true ]; then
       /bin/echo "$OLD_NAME -> $NEW_NAME"

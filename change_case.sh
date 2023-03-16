@@ -51,7 +51,7 @@ PATH="$1"
 # Define the function to perform the case conversion
 function convert_case {
   local OLD_NAME="$1"
-  if [ -f "$1" ]; then
+  if [ -f "$1" ]  && [[ "$1" == *.* ]]; then
     local FILE_NAME=$(/usr/bin/basename "$1")
     local DIR_PATH=$(/usr/bin/dirname "$1")
     local FILE_EXT="${FILE_NAME##*.}"
